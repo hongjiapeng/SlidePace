@@ -29,7 +29,6 @@
                     <Border
                         x:Name="CompactGlassOverlay"
                         Background="{ThemeResource PresenterHudHoverBrush}"
-                        CornerRadius="{StaticResource PresenterHudCornerRadius}"
                         IsHitTestVisible="False"
                         Opacity="0" />
                     <Grid Padding="12,8" ColumnSpacing="4">
@@ -238,7 +237,6 @@
                     <Border
                         x:Name="HudGlassOverlay"
                         Background="{ThemeResource PresenterHudHoverBrush}"
-                        CornerRadius="{StaticResource PresenterHudCornerRadius}"
                         IsHitTestVisible="False"
                         Opacity="0" />
                     <Grid Padding="12,8" ColumnSpacing="4">

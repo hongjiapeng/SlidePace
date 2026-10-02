@@ -58,6 +58,7 @@ public sealed partial class MainWindow : Window
     private bool _shutdownComplete;
     private bool _shutdownStarted;
     private bool _hidePresenterFromCapture;
+    private bool _floatingChromeRefreshQueued;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="MainWindow"/> class.
@@ -80,6 +81,7 @@ public sealed partial class MainWindow : Window
         this.ExtendsContentIntoTitleBar = true;
         this.AppWindow.SetIcon("Assets/AppIcon.ico");
         this.AppWindow.Closing += this.OnClosing;
+        this.AppWindow.Changed += this.OnAppWindowChanged;
         this.Activated += this.OnActivated;
         this._mainPage.DragRegionLoaded += this.OnDragRegionLoaded;
         this.RootFrame.Content = mainPage;
@@ -274,6 +276,7 @@ public sealed partial class MainWindow : Window
         this._resizeAnimationTimer.Stop();
         this._shutdownComplete = true;
         this.AppWindow.Closing -= this.OnClosing;
+        this.AppWindow.Changed -= this.OnAppWindowChanged;
         this.Activated -= this.OnActivated;
         this._mainPage.DragRegionLoaded -= this.OnDragRegionLoaded;
         this._windowController.Detach(this);
@@ -489,19 +492,41 @@ public sealed partial class MainWindow : Window
             return;
         }
 
-        this.ApplyFloatingWindowChrome();
+        this.RefreshFloatingWindowChrome();
+    }
+
+    private void OnAppWindowChanged(AppWindow sender, AppWindowChangedEventArgs args)
+    {
+        if (this._windowMode != DesktopWindowMode.Expanded &&
+            (args.DidPositionChange || args.DidSizeChange))
+        {
+            // Moving the native window can restore WinUI's one-pixel top inset
+            // without changing the rounded XAML layout size.
+            this.QueueFloatingClientAreaRefresh();
+        }
     }
 
     private void RefreshFloatingWindowChrome()
     {
         this.ApplyFloatingWindowChrome();
-        _ = this.DispatcherQueue.TryEnqueue(
+        this.QueueFloatingClientAreaRefresh();
+    }
+
+    private void QueueFloatingClientAreaRefresh()
+    {
+        if (this._floatingChromeRefreshQueued)
+        {
+            return;
+        }
+
+        this._floatingChromeRefreshQueued = this.DispatcherQueue.TryEnqueue(
             DispatcherQueuePriority.Low,
             () =>
             {
+                this._floatingChromeRefreshQueued = false;
                 if (this._windowMode != DesktopWindowMode.Expanded)
                 {
-                    this.ApplyFloatingWindowChrome();
+                    this.FillFloatingClientArea();
                 }
             });
     }
@@ -709,6 +734,7 @@ public sealed partial class MainWindow : Window
         finally
         {
             this.Activated -= this.OnActivated;
+            this.AppWindow.Changed -= this.OnAppWindowChanged;
             this._mainPage.DragRegionLoaded -= this.OnDragRegionLoaded;
             this._windowController.Detach(this);
             this._shutdownComplete = true;
