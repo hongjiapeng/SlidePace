@@ -228,6 +228,7 @@ public sealed partial class MainWindow : Window
             this._presentationHudBounds = this.GetCurrentBounds();
         }
 
+        this._windowMode = DesktopWindowMode.Expanded;
         presenter.SetBorderAndTitleBar(true, true);
         this.SetWindowChromeVisibility(true);
         this.ResetExtendedFrame();
@@ -255,7 +256,6 @@ public sealed partial class MainWindow : Window
         this.AppWindow.MoveAndResize(target);
         this._expandedBounds = target;
 
-        this._windowMode = DesktopWindowMode.Expanded;
         this.UpdateCaptureAffinity();
     }
 
@@ -369,6 +369,16 @@ public sealed partial class MainWindow : Window
     [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
     [DllImport("user32.dll")]
     private static extern bool GetWindowRect(nint windowHandle, out NativeWindowBounds bounds);
+
+    [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+    [DllImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool GetClientRect(nint windowHandle, out NativeWindowBounds bounds);
+
+    [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+    [DllImport("user32.dll", EntryPoint = "FindWindowExW", CharSet = CharSet.Unicode)]
+    private static extern nint FindWindowEx(
+        nint parentWindow, nint childAfter, string className, string? windowName);
 
     [LoggerMessage(4000, LogLevel.Error, "Window shutdown encountered an error")]
     private static partial void LogWindowShutdownFailed(ILogger logger, Exception exception);
@@ -501,6 +511,40 @@ public sealed partial class MainWindow : Window
         this.ExtendFrameAcrossClientArea();
         this.RequestCornerPreference(DwmWindowCornerPreferenceRound);
         this.RequestBorderColor(DwmWindowBorderColorNone);
+        this.FillFloatingClientArea();
+    }
+
+    private void FillFloatingClientArea()
+    {
+        nint windowHandle = Win32Interop.GetWindowFromWindowId(this.AppWindow.Id);
+        nint contentBridge = FindWindowEx(windowHandle, 0, "Microsoft.UI.Content.DesktopChildSiteBridge", null);
+        if (contentBridge == 0 ||
+            !GetWindowRect(windowHandle, out NativeWindowBounds windowBounds) ||
+            !GetWindowRect(contentBridge, out NativeWindowBounds contentBounds) ||
+            !GetClientRect(windowHandle, out NativeWindowBounds clientBounds))
+        {
+            return;
+        }
+
+        int width = clientBounds.Right - clientBounds.Left;
+        int height = clientBounds.Bottom - clientBounds.Top;
+        if (contentBounds.Left == windowBounds.Left && contentBounds.Top == windowBounds.Top &&
+            contentBounds.Right - contentBounds.Left == width &&
+            contentBounds.Bottom - contentBounds.Top == height)
+        {
+            return;
+        }
+
+        // WinUI reserves a pixel for the top frame even after native chrome is
+        // removed. Fill that gap with XAML instead of exposing the caption fill.
+        _ = SetWindowPos(
+            contentBridge,
+            0,
+            0,
+            0,
+            width,
+            height,
+            SetWindowPositionNoZOrder | SetWindowPositionNoActivate);
     }
 
     private void ExtendFrameAcrossClientArea()
@@ -531,6 +575,18 @@ public sealed partial class MainWindow : Window
         if (this._windowMode == DesktopWindowMode.Expanded)
         {
             this.UpdateTitleBarPinMargin();
+        }
+        else
+        {
+            this.FillFloatingClientArea();
+        }
+    }
+
+    private void WindowLayoutRoot_ActualThemeChanged(FrameworkElement sender, object args)
+    {
+        if (this._windowMode != DesktopWindowMode.Expanded)
+        {
+            this.RefreshFloatingWindowChrome();
         }
     }
 
@@ -596,7 +652,14 @@ public sealed partial class MainWindow : Window
         }
     }
 
-    private void OnDragRegionLoaded(FrameworkElement dragRegion) => this.SetTitleBar(dragRegion);
+    private void OnDragRegionLoaded(FrameworkElement dragRegion)
+    {
+        this.SetTitleBar(dragRegion);
+        if (this._windowMode != DesktopWindowMode.Expanded)
+        {
+            this.RefreshFloatingWindowChrome();
+        }
+    }
 
     private int ToPhysicalPixels(int effectivePixels)
     {

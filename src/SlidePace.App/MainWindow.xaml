@@ -13,6 +13,7 @@
 
     <Grid
         x:Name="WindowLayoutRoot"
+        ActualThemeChanged="WindowLayoutRoot_ActualThemeChanged"
         Background="{ThemeResource PresenterWindowSurfaceBrush}"
         SizeChanged="WindowLayoutRoot_SizeChanged">
         <Grid.RowDefinitions>
