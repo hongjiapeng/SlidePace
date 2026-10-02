@@ -43,6 +43,10 @@ public sealed partial class MainWindow : Window
     private const int WindowStyleThickFrame = 0x00040000;
     private const uint WindowDisplayAffinityNone = 0;
     private const uint WindowDisplayAffinityExcludeFromCapture = 0x00000011;
+    private const uint WindowMessagePositionChanging = 0x0046;
+    private const uint WindowMessageNonClientDestroy = 0x0082;
+    private const nuint ContentBridgeSubclassId = 1;
+    private static readonly WindowSubclassProcedure ContentBridgeSubclassProcedure = OnContentBridgeMessage;
     private readonly ILogger<MainWindow> _logger;
     private readonly MainPage _mainPage;
     private readonly WindowController _windowController;
@@ -59,6 +63,7 @@ public sealed partial class MainWindow : Window
     private bool _shutdownStarted;
     private bool _hidePresenterFromCapture;
     private bool _floatingChromeRefreshQueued;
+    private nint _floatingContentBridge;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="MainWindow"/> class.
@@ -81,7 +86,6 @@ public sealed partial class MainWindow : Window
         this.ExtendsContentIntoTitleBar = true;
         this.AppWindow.SetIcon("Assets/AppIcon.ico");
         this.AppWindow.Closing += this.OnClosing;
-        this.AppWindow.Changed += this.OnAppWindowChanged;
         this.Activated += this.OnActivated;
         this._mainPage.DragRegionLoaded += this.OnDragRegionLoaded;
         this.RootFrame.Content = mainPage;
@@ -91,6 +95,9 @@ public sealed partial class MainWindow : Window
         this._resizeAnimationTimer.Tick += this.OnResizeAnimationTick;
         this.EnterExpandedMode();
     }
+
+    private delegate nint WindowSubclassProcedure(
+        nint windowHandle, uint message, nuint wParam, nint lParam, nuint subclassId, nuint referenceData);
 
     private enum DesktopWindowMode
     {
@@ -231,6 +238,7 @@ public sealed partial class MainWindow : Window
         }
 
         this._windowMode = DesktopWindowMode.Expanded;
+        this.DetachFloatingContentBridge();
         presenter.SetBorderAndTitleBar(true, true);
         this.SetWindowChromeVisibility(true);
         this.ResetExtendedFrame();
@@ -276,7 +284,7 @@ public sealed partial class MainWindow : Window
         this._resizeAnimationTimer.Stop();
         this._shutdownComplete = true;
         this.AppWindow.Closing -= this.OnClosing;
-        this.AppWindow.Changed -= this.OnAppWindowChanged;
+        this.DetachFloatingContentBridge();
         this.Activated -= this.OnActivated;
         this._mainPage.DragRegionLoaded -= this.OnDragRegionLoaded;
         this._windowController.Detach(this);
@@ -383,6 +391,22 @@ public sealed partial class MainWindow : Window
     private static extern nint FindWindowEx(
         nint parentWindow, nint childAfter, string className, string? windowName);
 
+    [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+    [DllImport("comctl32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool SetWindowSubclass(
+        nint windowHandle, WindowSubclassProcedure callback, nuint subclassId, nuint referenceData);
+
+    [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+    [DllImport("comctl32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool RemoveWindowSubclass(
+        nint windowHandle, WindowSubclassProcedure callback, nuint subclassId);
+
+    [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+    [DllImport("comctl32.dll")]
+    private static extern nint DefSubclassProc(nint windowHandle, uint message, nuint wParam, nint lParam);
+
     [LoggerMessage(4000, LogLevel.Error, "Window shutdown encountered an error")]
     private static partial void LogWindowShutdownFailed(ILogger logger, Exception exception);
 
@@ -406,6 +430,37 @@ public sealed partial class MainWindow : Window
     }
 
     private static int Lerp(int from, int to, double t) => (int)Math.Round(from + ((to - from) * t));
+
+    private static nint OnContentBridgeMessage(
+        nint windowHandle, uint message, nuint wParam, nint lParam, nuint subclassId, nuint referenceData)
+    {
+        if (message == WindowMessagePositionChanging && lParam != 0)
+        {
+            // Correct WinUI's top inset before its child window moves or lays
+            // out. Resizing it again after each move makes the controls jitter.
+            var position = Marshal.PtrToStructure<NativeWindowPosition>(lParam);
+            if ((position.Flags & SetWindowPositionNoMove) == 0 && position.Y > 0)
+            {
+                int topInset = position.Y;
+                position.Y = 0;
+                if ((position.Flags & SetWindowPositionNoSize) == 0)
+                {
+                    position.Height += topInset;
+                }
+
+                // Preserve the pending size during a batched parent resize;
+                // the parent's current client bounds can still be stale here.
+                Marshal.StructureToPtr(position, lParam, false);
+            }
+        }
+
+        if (message == WindowMessageNonClientDestroy)
+        {
+            _ = RemoveWindowSubclass(windowHandle, ContentBridgeSubclassProcedure, subclassId);
+        }
+
+        return DefSubclassProc(windowHandle, message, wParam, lParam);
+    }
 
     private static void RefreshWindowFrame(nint windowHandle)
     {
@@ -495,14 +550,13 @@ public sealed partial class MainWindow : Window
         this.RefreshFloatingWindowChrome();
     }
 
-    private void OnAppWindowChanged(AppWindow sender, AppWindowChangedEventArgs args)
+    private void DetachFloatingContentBridge()
     {
-        if (this._windowMode != DesktopWindowMode.Expanded &&
-            (args.DidPositionChange || args.DidSizeChange))
+        if (this._floatingContentBridge != 0)
         {
-            // Moving the native window can restore WinUI's one-pixel top inset
-            // without changing the rounded XAML layout size.
-            this.QueueFloatingClientAreaRefresh();
+            _ = RemoveWindowSubclass(
+                this._floatingContentBridge, ContentBridgeSubclassProcedure, ContentBridgeSubclassId);
+            this._floatingContentBridge = 0;
         }
     }
 
@@ -543,6 +597,16 @@ public sealed partial class MainWindow : Window
     {
         nint windowHandle = Win32Interop.GetWindowFromWindowId(this.AppWindow.Id);
         nint contentBridge = FindWindowEx(windowHandle, 0, "Microsoft.UI.Content.DesktopChildSiteBridge", null);
+        if (contentBridge != 0 && contentBridge != this._floatingContentBridge)
+        {
+            this.DetachFloatingContentBridge();
+            if (SetWindowSubclass(
+                contentBridge, ContentBridgeSubclassProcedure, ContentBridgeSubclassId, 0))
+            {
+                this._floatingContentBridge = contentBridge;
+            }
+        }
+
         if (contentBridge == 0 ||
             !GetWindowRect(windowHandle, out NativeWindowBounds windowBounds) ||
             !GetWindowRect(contentBridge, out NativeWindowBounds contentBounds) ||
@@ -734,12 +798,30 @@ public sealed partial class MainWindow : Window
         finally
         {
             this.Activated -= this.OnActivated;
-            this.AppWindow.Changed -= this.OnAppWindowChanged;
+            this.DetachFloatingContentBridge();
             this._mainPage.DragRegionLoaded -= this.OnDragRegionLoaded;
             this._windowController.Detach(this);
             this._shutdownComplete = true;
             this.Close();
         }
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct NativeWindowPosition
+    {
+        internal nint WindowHandle;
+
+        internal nint InsertAfter;
+
+        internal int X;
+
+        internal int Y;
+
+        internal int Width;
+
+        internal int Height;
+
+        internal uint Flags;
     }
 
     [StructLayout(LayoutKind.Sequential)]
