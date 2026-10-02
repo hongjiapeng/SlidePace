@@ -19,15 +19,29 @@ It runs locally, does not require an account, and does not close your presentati
 
 ## Product tour
 
-| Desktop workspace · live UI | Phone remote · live UI |
-|:---:|:---:|
-| <img src="docs/screenshots/desktop-workspace.png" alt="SlidePace desktop workspace showing a running timer, PowerPoint status, remote pairing, and duration settings" width="610"> | <img src="docs/screenshots/phone-remote.png" alt="SlidePace phone remote showing timer, slide position, speaker notes, and navigation" width="255"> |
-| Timer, PowerPoint status, slide controls, remote pairing, and duration settings in one workspace. | Remaining time, current slide, speaker notes, and Previous/Next controls in the phone browser. |
+### Desktop workspace
 
-| Presenter HUD |
-|:---:|
-| <img src="docs/screenshots/presenter-hud.png" alt="SlidePace presenter HUD" width="340"> |
-| A minimal always-visible surface for presenting. |
+Timer, PowerPoint status, slide controls, and remote pairing in one workspace.
+
+<p align="center">
+  <img src="docs/screenshots/desktop-workspace.png" alt="SlidePace desktop workspace showing a running timer, PowerPoint status, remote pairing, and duration settings" width="960">
+</p>
+
+### Phone remote
+
+View the remaining time, current slide, and speaker notes, and navigate from your phone.
+
+<p align="center">
+  <img src="docs/screenshots/phone-remote.png" alt="SlidePace phone remote showing timer, slide position, speaker notes, and navigation" width="300">
+</p>
+
+### Presenter HUD
+
+A floating timer shows the remaining time and progress.
+
+<p align="center">
+  <img src="docs/screenshots/presenter-hud.png" alt="SlidePace presenter HUD showing 14:38 and its progress bar" width="275">
+</p>
 
 ## What it does
 

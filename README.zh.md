@@ -19,15 +19,29 @@ SlidePace 把现场演讲所需的核心工具放在同一个界面中：精准�
 
 ## 产品预览
 
-| 桌面工作台 · 实际界面 | 手机遥控 · 实际界面 |
-|:---:|:---:|
-| <img src="docs/screenshots/desktop-workspace.png" alt="SlidePace 桌面工作台，显示运行中的计时器、PowerPoint 状态、远程配对和时长设置" width="610"> | <img src="docs/screenshots/phone-remote.png" alt="SlidePace 手机遥控器，显示计时、幻灯片位置、演讲者备注和翻页控制" width="255"> |
-| 在一个工作台中查看计时器、PowerPoint 状态、翻页控制、远程配对和时长设置。 | 在手机浏览器中查看剩余时间、当前幻灯片和备注，并进行上一页/下一页操作。 |
+### 桌面工作台
 
-| 演讲者 HUD |
-|:---:|
-| <img src="docs/screenshots/presenter-hud.png" alt="SlidePace 演讲者 HUD" width="340"> |
-| 演讲时保持可见的极简计时浮层。 |
+在一个工作台中查看计时器、PowerPoint 状态、翻页控制和远程配对。
+
+<p align="center">
+  <img src="docs/screenshots/desktop-workspace.png" alt="SlidePace 桌面工作台，显示运行中的计时器、PowerPoint 状态、远程配对和时长设置" width="960">
+</p>
+
+### 手机遥控
+
+在手机上查看剩余时间、当前幻灯片与演讲者备注，并控制翻页。
+
+<p align="center">
+  <img src="docs/screenshots/phone-remote.png" alt="SlidePace 手机遥控器，显示计时、幻灯片位置、演讲者备注和翻页控制" width="300">
+</p>
+
+### 演讲者 HUD
+
+悬浮计时器显示剩余时间和进度。
+
+<p align="center">
+  <img src="docs/screenshots/presenter-hud.png" alt="SlidePace 演讲者 HUD，显示 14:38 和进度条" width="275">
+</p>
 
 ## 功能概览
 
