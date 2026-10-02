@@ -3,7 +3,7 @@
 #define MyAppExeName "SlidePace.App.exe"
 
 #ifndef AppVersion
-  #define AppVersion "0.2.0"
+  #define AppVersion "0.2.1"
 #endif
 
 #ifndef SourceDir
@@ -24,8 +24,8 @@ AppId={{a0d01205-281b-4773-9ef3-216ab3bede1a}
 AppName={#MyAppName}
 AppVersion={#AppVersion}
 AppPublisher={#MyAppPublisher}
-AppPublisherURL=https://github.com/hongjiapeng/PresentationTimer
-AppSupportURL=https://github.com/hongjiapeng/PresentationTimer/issues
+AppPublisherURL=https://github.com/hongjiapeng/SlidePace
+AppSupportURL=https://github.com/hongjiapeng/SlidePace/issues
 DefaultDirName={localappdata}\Programs\SlidePace
 DefaultGroupName={#MyAppName}
 DisableProgramGroupPage=yes

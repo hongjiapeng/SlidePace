@@ -9,7 +9,7 @@
 ![.NET 10](https://img.shields.io/badge/.NET-10-512BD4?style=flat-square&logo=dotnet&logoColor=white)
 ![WinUI 3](https://img.shields.io/badge/UI-WinUI_3-0078D4?style=flat-square&logo=windows&logoColor=white)
 ![Windows x64](https://img.shields.io/badge/Windows-x64-0078D4?style=flat-square&logo=windows&logoColor=white)
-[![下载](https://img.shields.io/badge/下载-GitHub_Releases-2ea44f?style=flat-square&labelColor=333)](https://github.com/hongjiapeng/PresentationTimer/releases)
+[![下载](https://img.shields.io/badge/下载-GitHub_Releases-2ea44f?style=flat-square&labelColor=333)](https://github.com/hongjiapeng/SlidePace/releases)
 
 </div>
 
@@ -55,7 +55,7 @@ SlidePace 把现场演讲所需的核心工具放在同一个界面中：精准�
 
 ## 快速开始
 
-1. 从 [GitHub Releases](https://github.com/hongjiapeng/PresentationTimer/releases) 下载 Windows 安装程序或便携 ZIP。
+1. 从 [GitHub Releases](https://github.com/hongjiapeng/SlidePace/releases) 下载 Windows 安装程序或便携 ZIP。
 2. 打开 SlidePace，选择或输入 `15:00` 这样的时长。
 3. 打开 `.ppt`、`.pptx`、`.pptm`、`.pps` 或 `.ppsx` 文件；也可以先在 PowerPoint 中开始放映，让 SlidePace 自动连接。
 4. 启动计时器。暂停、继续和重置仍然是桌面端本地命令。
@@ -169,13 +169,13 @@ Inno Setup 安装程序按用户安装到 `%LOCALAPPDATA%\Programs\SlidePace`，
 安装 Inno Setup 6 后，可在本地构建：
 
 ```powershell
-.\scripts\build-installer.ps1 -Version 0.2.0
+.\scripts\build-installer.ps1 -Version 0.2.1
 ```
 
 提交并推送预期变更后，发布版本：
 
 ```powershell
-.\scripts\release.ps1 0.2.0
+.\scripts\release.ps1 0.2.1
 ```
 
 发布脚本会运行测试套件并推送带注释的 `v*` 标签。随后 GitHub Actions 构建安装程序和便携 ZIP，并创建或更新 GitHub Release。

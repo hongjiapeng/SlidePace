@@ -9,7 +9,7 @@
 ![.NET 10](https://img.shields.io/badge/.NET-10-512BD4?style=flat-square&logo=dotnet&logoColor=white)
 ![WinUI 3](https://img.shields.io/badge/UI-WinUI_3-0078D4?style=flat-square&logo=windows&logoColor=white)
 ![Windows x64](https://img.shields.io/badge/Windows-x64-0078D4?style=flat-square&logo=windows&logoColor=white)
-[![Download](https://img.shields.io/badge/DOWNLOAD-GitHub_Releases-2ea44f?style=flat-square&labelColor=333)](https://github.com/hongjiapeng/PresentationTimer/releases)
+[![Download](https://img.shields.io/badge/DOWNLOAD-GitHub_Releases-2ea44f?style=flat-square&labelColor=333)](https://github.com/hongjiapeng/SlidePace/releases)
 
 </div>
 
@@ -57,7 +57,7 @@ The presenter HUD docks at the lower-right edge of the display that contains the
 
 ## Quick start
 
-1. Download the Windows installer or portable zip from [GitHub Releases](https://github.com/hongjiapeng/PresentationTimer/releases).
+1. Download the Windows installer or portable zip from [GitHub Releases](https://github.com/hongjiapeng/SlidePace/releases).
 2. Open SlidePace and choose a duration such as `15:00`.
 3. Open a `.ppt`, `.pptx`, `.pptm`, `.pps`, or `.ppsx` file, or start a slide show in PowerPoint first and let SlidePace attach automatically.
 4. Start the timer. Pause, resume, and reset remain local desktop commands.
@@ -171,13 +171,13 @@ The Inno Setup installer installs per-user to `%LOCALAPPDATA%\Programs\SlidePace
 Build it locally with Inno Setup 6 installed:
 
 ```powershell
-.\scripts\build-installer.ps1 -Version 0.2.0
+.\scripts\build-installer.ps1 -Version 0.2.1
 ```
 
 To publish a release after committing and pushing the intended changes:
 
 ```powershell
-.\scripts\release.ps1 0.2.0
+.\scripts\release.ps1 0.2.1
 ```
 
 The release script runs the test suite and pushes an annotated `v*` tag. GitHub Actions then builds the installer and portable zip and creates or updates the GitHub Release.
