@@ -19,15 +19,15 @@ It runs locally, does not require an account, and does not close your presentati
 
 ## Product tour
 
-| Desktop workspace · design reference | Phone remote · live UI |
+| Desktop workspace · live UI | Phone remote · live UI |
 |:---:|:---:|
-| <img src="docs/design/presentation-timer-expanded-ui-v2.png" alt="Expanded SlidePace desktop workspace design" width="610"> | <img src="docs/screenshots/phone-remote.png" alt="SlidePace phone remote showing timer, slide position, speaker notes, and navigation" width="255"> |
+| <img src="docs/screenshots/desktop-workspace.png" alt="SlidePace desktop workspace showing a running timer, PowerPoint status, remote pairing, and duration settings" width="610"> | <img src="docs/screenshots/phone-remote.png" alt="SlidePace phone remote showing timer, slide position, speaker notes, and navigation" width="255"> |
 | Timer, PowerPoint status, slide controls, remote pairing, and duration settings in one workspace. | Remaining time, current slide, speaker notes, and Previous/Next controls in the phone browser. |
 
-| Compact timer | Presenter HUD |
-|:---:|:---:|
-| <img src="docs/screenshots/compact-timer.png" alt="SlidePace compact timer" width="500"> | <img src="docs/screenshots/presenter-hud.png" alt="SlidePace presenter HUD" width="340"> |
-| A focused timer with progress and essential controls. | A minimal always-visible surface for presenting. |
+| Presenter HUD |
+|:---:|
+| <img src="docs/screenshots/presenter-hud.png" alt="SlidePace presenter HUD" width="340"> |
+| A minimal always-visible surface for presenting. |
 
 ## What it does
 
